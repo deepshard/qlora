@@ -82,7 +82,7 @@ class DataArguments:
         },
     )
     source_max_len: int = field(
-        default=1024,
+        default=(4096-256),
         metadata={"help": "Maximum source sequence length. Sequences will be right padded (and possibly truncated)."},
     )
     target_max_len: int = field(
@@ -101,7 +101,7 @@ class DataArguments:
 @dataclass
 class TrainingArguments(transformers.Seq2SeqTrainingArguments):
     cache_dir: Optional[str] = field(
-        default=None
+        default="/scratch/data"
     )
     train_on_source: Optional[bool] = field(
         default=False,
@@ -164,12 +164,12 @@ class TrainingArguments(transformers.Seq2SeqTrainingArguments):
         metadata={"help": "Free memory per gpu."}
     )
     report_to: str = field(
-        default='none',
+        default='wandb',
         metadata={"help": "To use wandb or something else for reporting."}
     )
     output_dir: str = field(default='./output', metadata={"help": 'The output dir for logs and checkpoints'})
     optim: str = field(default='paged_adamw_32bit', metadata={"help": 'The optimizer to be used'})
-    per_device_train_batch_size: int = field(default=1, metadata={"help": 'The training batch size per GPU. Increase for better speed.'})
+    per_device_train_batch_size: int = field(default=128, metadata={"help": 'The training batch size per GPU. Increase for better speed.'})
     gradient_accumulation_steps: int = field(default=16, metadata={"help": 'How many gradients to accumulate before to perform an optimizer step'})
     max_steps: int = field(default=10000, metadata={"help": 'How many optimizer update steps to take'})
     weight_decay: float = field(default=0.0, metadata={"help": 'The L2 weight decay rate of AdamW'}) # use lora dropout instead for regularization if needed
@@ -570,6 +570,7 @@ def make_data_module(tokenizer: transformers.PreTrainedTokenizer, args) -> Dict:
         dataset = dataset.remove_columns(
             [col for col in dataset.column_names['train'] if col not in ['input', 'output']]
         )
+        print("Dataset: ", dataset["train"][:5], )
         return dataset
 
      # Load dataset.
